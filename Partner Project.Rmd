@@ -1,0 +1,97 @@
+---
+title: "Salary By Education Level, Gender, and Race"
+author: "Leigh Stern with Arushi Singh"
+date: "2022-11-11"
+output: 
+  pdf_document: default
+  html_notebook
+---
+
+```{r packageSetup, include = FALSE}
+library(rvest)
+library(dplyr)
+library(readr)
+library(ggplot2)
+library(tidyr)
+```
+
+```{r firstTable}
+sarariesByGender1 <- read_html(
+  x = "https://www.forbes.com/advisor/student-loans/average-salary-college-graduates/"
+) %>% 
+  html_elements(css = "table") %>% 
+  html_table()
+
+table1 <- sarariesByGender1[[2]]
+```
+
+```{r second Table}
+salariesByGender2 <- read_html(
+  x = "https://www.forbes.com/advisor/student-loans/average-salary-college-graduates/"
+) %>% 
+  html_elements(css = "table") %>% 
+  html_table()
+
+table2 <- salariesByGender2[[5]]
+```
+
+```{r dataWrangling}
+table2 <- table2[-c(7, 8),]
+```
+
+```{r bindingTables}
+boundColumnTable <- bind_cols(table1, table2)
+boundColumnTable <- select(boundColumnTable, -3)
+
+```
+
+```{r plot}
+colors <- c("Median Earnings for Males" = "dark blue", "Median Earnings for Females" = "magenta", "Median Earnings for 25 to 34 Year Olds" = "black")
+
+boundColumnTable$degree_level <- as.character(boundColumnTable$degree_level)
+
+boundColumnTable$degree_level <- factor(boundColumnTable$degree_level, levels=unique(boundColumnTable$degree_level))
+
+ggplot(
+  data = boundColumnTable,
+  aes(x = degree_level, group = 1)
+) +
+  geom_point(aes(y = median_earnings_25to34, color = "Median Earnings for 25 to 34 Year Olds")) + 
+  geom_point(aes(y = median_earnings_male, color = "Median Earnings for Males")) + 
+  geom_point(aes(y = median_earnings_female, color = "Median Earnings for Females")) + 
+  geom_line(aes(y = median_earnings_25to34, color = "Median Earnings for 25 to 34 Year Olds"), size = 1, linetype = 2) + 
+  geom_line(aes(y = median_earnings_male, color = "Median Earnings for Males"), size = 1) + 
+  geom_line(aes(y = median_earnings_female, color = "Median Earnings for Females"), size = 1) +
+  labs(x = "Degree Level", y = "Median Earnings") + 
+  ggtitle("Median Earnings by Gender and Degree Level") + 
+  scale_color_manual(values = colors) +
+  guides(color = guide_legend(title = "Gender")) +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1)) + 
+  theme_classic()
+```
+```{r trackdownSetup, echo = TRUE, eval = FALSE}
+devtools::install_github(
+  repo = "claudiozandonella/trackdown",
+  build_vignettes = TRUE
+)
+```
+
+```{r trackdownUpload, echo = TRUE, eval = FALSE}
+
+#nothing yet
+```
+
+
+This is an [R Markdown](http://rmarkdown.rstudio.com) Notebook. When you execute code within the notebook, the results appear beneath the code. 
+
+Try executing this chunk by clicking the *Run* button within the chunk or by placing your cursor inside it and pressing *Ctrl+Shift+Enter*. 
+
+```{r}
+plot(cars)
+```
+
+Add a new chunk by clicking the *Insert Chunk* button on the toolbar or by pressing *Ctrl+Alt+I*.
+
+When you save the notebook, an HTML file containing the code and output will be saved alongside it (click the *Preview* button or press *Ctrl+Shift+K* to preview the HTML file).
+
+The preview shows you a rendered HTML copy of the contents of the editor. Consequently, unlike *Knit*, *Preview* does not run any R code chunks. Instead, the output of the chunk when it was last run in the editor is displayed.
